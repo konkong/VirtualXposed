@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.OrientationHelper;
@@ -20,6 +21,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.lody.virtual.helper.utils.VLog;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,6 +37,7 @@ import io.virtualapp.home.models.AppInfo;
 import io.virtualapp.home.models.AppInfoLite;
 import io.virtualapp.sys.Installd;
 import io.virtualapp.widgets.DragSelectRecyclerView;
+import io.virtualapp.widgets.filepicker.FilePicker;
 
 
 /**
@@ -102,7 +106,7 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
     }
 
     private void chooseInstallWay(Runnable runnable, String path) {
-        AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+        /*AlertDialog alertDialog = new AlertDialog.Builder(getContext())
                 .setTitle(R.string.install_choose_way)
                 .setMessage(R.string.install_choose_content)
                 .setPositiveButton(R.string.install_choose_taichi, (dialog, which) -> {
@@ -151,7 +155,11 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
         try {
             alertDialog.show();
         } catch (Throwable ignored) {
+        }*/
+        if (runnable != null) {
+            runnable.run();
         }
+        finishActivity();
     }
 
     @Override
@@ -209,12 +217,25 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
             }
         });
         mSelectFromExternal.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            /*Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("application/vnd.android.package-archive"); // apk file
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             try {
                 startActivityForResult(intent, REQUEST_GET_FILE);
             } catch (Throwable ignored) {
+                Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
+            }*/
+
+            try {
+                new FilePicker()
+                        .withFragment(ListAppFragment.this)
+                        .withRequestCode(REQUEST_GET_FILE)
+                        .withStartPath(Environment.getExternalStorageDirectory().getPath())
+                        .withFileFilter(new String[]{"apk"})
+                        .withMutilyMode(false)
+                        .start();
+            } catch (Exception ex) {
+                ex.printStackTrace();
                 Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
             }
         });
@@ -252,16 +273,22 @@ public class ListAppFragment extends VFragment<ListAppContract.ListAppPresenter>
             return;
         }
 
-        Uri uri = data.getData();
-        String path = getPath(getActivity(), uri);
-        if (path == null) {
+//        Uri uri = data.getData();
+//        String path = getPath(getActivity(), uri);
+//        if (path == null) {
+//            return;
+//        }
+
+        List<String> list = data.getStringArrayListExtra("paths");
+        if (list == null || list.size() <= 0) {
+            Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
             return;
         }
 
         chooseInstallWay(() -> {
-            Installd.handleRequestFromFile(getActivity(), path);
+            Installd.handleRequestFromFile(getActivity(), list.get(0));
             getActivity().setResult(Activity.RESULT_OK);
-        }, path);
+        }, list.get(0));
     }
 
     public static String getPath(Context context, Uri uri) {

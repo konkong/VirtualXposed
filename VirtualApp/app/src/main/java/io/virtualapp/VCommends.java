@@ -10,6 +10,12 @@ public class VCommends {
 
 	public static final int REQUEST_SELECT_APP = 5;
 
+	public static final int REQUEST_SELECT_EXPORT_FILES = 6;
+
+	public static final int REQUEST_SELECT_IMPORT_FILES = 7;
+
+	public static final int REQUEST_SELECT_IMPORT_FOLDER = 8;
+
 	public static final String EXTRA_APP_INFO_LIST = "va.extra.APP_INFO_LIST";
 
 	public static final String TAG_ASK_INSTALL_GMS = "va.extra.ASK_INSTALL_GMS";

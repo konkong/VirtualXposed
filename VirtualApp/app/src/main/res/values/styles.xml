@@ -32,4 +32,46 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
 
+    <style name="FilePickerTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/file_picker_colorPrimary</item>
+        <item name="colorPrimaryDark">@color/file_picker_colorPrimaryDark</item>
+        <item name="colorAccent">@color/file_picker_colorAccent</item>
+        <item name="homeAsUpIndicator">@drawable/ic_file_picker_back1</item>
+        <item name="actionBarSize">36dp</item>
+        <item name="navigationIcon">@drawable/ic_file_picker_back1</item><!--返回icon-->
+        <!-- 溢出菜单图标颜色-->
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="actionMenuTextColor">@android:color/white</item>
+    </style>
+
+    <!--toolbar 上title的样式-->
+    <style name="FilePickerToolbarTextStyle" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:textColor">@color/file_picker_white</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="file_pickerCheckBoxTheme" parent="FilePickerTheme">
+        <!-- 溢出菜单图标颜色-->
+        <item name="colorControlNormal">@color/file_picker_gray</item>
+    </style>
+
+    <style name="file_picker_item_text_name">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textColor">#101010</item>
+        <item name="android:gravity">left</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="file_picker_item_text_detail">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:textColor">#999999</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">left</item>
+        <item name="android:textSize">14sp</item>
+    </style>
 </resources>

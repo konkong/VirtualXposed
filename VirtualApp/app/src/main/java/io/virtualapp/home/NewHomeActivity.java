@@ -45,6 +45,7 @@ import io.virtualapp.R;
 import io.virtualapp.abs.ui.VUiKit;
 import io.virtualapp.settings.SettingsActivity;
 import io.virtualapp.update.VAVersionService;
+import io.virtualapp.utils.DialogUtil;
 import io.virtualapp.utils.Misc;
 import jonathanfinerty.once.Once;
 
@@ -78,7 +79,7 @@ public class NewHomeActivity extends NexusLauncherActivity {
         showMenuKey();
         mUiHandler = new Handler(getMainLooper());
         alertForMeizu();
-        alertForDonate();
+        //alertForDonate();
         mDirectlyBack = sharedPreferences.getBoolean(SettingsActivity.DIRECTLY_BACK_KEY, false);
     }
 
@@ -135,21 +136,10 @@ public class NewHomeActivity extends NexusLauncherActivity {
                     }
                 }
             }).then((v) -> {
-                dismissDialog(dialog);
+                DialogUtil.dismissDialog(dialog);
             }).fail((err) -> {
-                dismissDialog(dialog);
+                DialogUtil.dismissDialog(dialog);
             });
-        }
-    }
-
-    private static void dismissDialog(ProgressDialog dialog) {
-        if (dialog == null) {
-            return;
-        }
-        try {
-            dialog.dismiss();
-        } catch (Throwable e) {
-            e.printStackTrace();
         }
     }
 

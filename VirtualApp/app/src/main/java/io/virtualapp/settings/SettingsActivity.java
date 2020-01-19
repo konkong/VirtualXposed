@@ -7,25 +7,39 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.launcher3.LauncherFiles;
 import com.lody.virtual.client.core.VirtualCore;
 import com.lody.virtual.client.env.Constants;
 import com.lody.virtual.client.ipc.VActivityManager;
+import com.lody.virtual.helper.utils.FileUtils;
+import com.lody.virtual.helper.utils.VLog;
+import com.lody.virtual.os.VEnvironment;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 import io.virtualapp.R;
 import io.virtualapp.VCommends;
+import io.virtualapp.XApp;
+import io.virtualapp.abs.ui.VUiKit;
 import io.virtualapp.gms.FakeGms;
 import io.virtualapp.home.ListAppActivity;
+import io.virtualapp.utils.DialogUtil;
 import io.virtualapp.utils.Misc;
+import io.virtualapp.widgets.filepicker.FilePicker;
 
 /**
  * Settings activity for Launcher. Currently implements the following setting: Allow rotation
@@ -53,6 +67,19 @@ public class SettingsActivity extends Activity {
     private static final String DISABLE_XPOSED = "advance_settings_disable_xposed";
     private static final String FILE_MANAGE = "settings_file_manage";
     private static final String PERMISSION_MANAGE = "settings_permission_manage";
+
+    /**
+     * 选中的文件列表
+     */
+    private List<String> csFiles;
+    /**
+     * copy文件计数器
+     */
+    private int cpNum;
+    /**
+     * copy文件的无聊等待
+     */
+    private ProgressDialog cpProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,13 +120,13 @@ public class SettingsActivity extends Activity {
             Preference fileMange = findPreference(FILE_MANAGE);
             Preference permissionManage = findPreference(PERMISSION_MANAGE);
 
-
             SwitchPreference disableInstaller = (SwitchPreference) findPreference(DISABLE_INSTALLER_KEY);
             SwitchPreference enableLauncher = (SwitchPreference) findPreference(ENABLE_LAUNCHER);
             SwitchPreference disableResidentNotification = (SwitchPreference) findPreference(DISABLE_RESIDENT_NOTIFICATION);
             SwitchPreference allowFakeSignature = (SwitchPreference) findPreference(ALLOW_FAKE_SIGNATURE);
             SwitchPreference disableXposed = (SwitchPreference) findPreference(DISABLE_XPOSED);
 
+            getPreferenceScreen().removePreference(donate);
             addApp.setOnPreferenceClickListener(preference -> {
                 ListAppActivity.gotoListApp(getActivity());
                 return false;
@@ -223,8 +250,29 @@ public class SettingsActivity extends Activity {
             });
 
             fileMange.setOnPreferenceClickListener(preference -> {
-                OnlinePlugin.openOrDownload(getActivity(), OnlinePlugin.FILE_MANAGE_PACKAGE,
-                        OnlinePlugin.FILE_MANAGE_URL, getString(R.string.install_file_manager_tips));
+//                OnlinePlugin.openOrDownload(getActivity(), OnlinePlugin.FILE_MANAGE_PACKAGE,
+//                        OnlinePlugin.FILE_MANAGE_URL, getString(R.string.install_file_manager_tips));
+                AlertDialog cpDialog = new AlertDialog.Builder(getActivity(), R.style.Theme_AppCompat_DayNight_Dialog_Alert)
+                        .setTitle(getResources().getString(R.string.file_picker_cp_title))
+                        .setMessage(getResources().getString(R.string.file_picker_need_cp_message))
+                        .setPositiveButton(getResources().getString(R.string.file_picker_need_cp_export), ((dialog1, which1) -> {
+                            createPicker(
+                                    getActivity(),
+                                    VCommends.REQUEST_SELECT_EXPORT_FILES,
+                                    VEnvironment.getUserSystemDirectory().getPath(),
+                                    R.string.file_picker_Selected,
+                                    true);
+                        }))
+                        .setNegativeButton(getResources().getString(R.string.file_picker_need_cp_import), ((dialog1, which1) -> {
+                            createPicker(
+                                    getActivity(),
+                                    VCommends.REQUEST_SELECT_IMPORT_FILES,
+                                    Environment.getExternalStorageDirectory().getPath(),
+                                    R.string.file_picker_need_cp_file,
+                                    true);
+                        }))
+                        .create();
+                DialogUtil.showDialog(cpDialog);
                 return false;
             });
 
@@ -335,6 +383,99 @@ public class SettingsActivity extends Activity {
             if (resultCode == RESULT_OK) {
                 finish();
             }
+        }else if(requestCode == VCommends.REQUEST_SELECT_EXPORT_FILES) {
+            if(resultCode == RESULT_OK) {
+                //文件模式
+                List<String> list = data.getStringArrayListExtra("paths");
+                String tpath = "/sdcard/VirtualXposed/";
+                cpProgressBar(true);
+                VUiKit.defer().when(() -> {
+                    copyFiles(list, tpath);
+                }).done((res) -> {
+                    cpProgressBar(false);
+                    cpFileDialog(String.format(Locale.ENGLISH, XApp.getApp().getResources().getString(R.string.file_picker_cp_title_msg2), cpNum, tpath));
+                }).fail((v) -> {
+                    if(cpNum <= 0){
+                        cpProgressBar(false);
+                        cpFileDialog(getResources().getString(R.string.file_picker_cp_title_msg));}
+                });
+            }
+        }else if(requestCode == VCommends.REQUEST_SELECT_IMPORT_FILES) {
+            if(resultCode == RESULT_OK) {
+                //文件模式
+                csFiles = data.getStringArrayListExtra("paths");
+                if(csFiles != null && csFiles.size() > 0) createPicker(
+                        this,
+                        VCommends.REQUEST_SELECT_IMPORT_FOLDER,
+                        VEnvironment.getUserSystemDirectory().getPath(),
+                        R.string.file_picker_cp_to_here,
+                        false);
+            }
+        }else if(requestCode == VCommends.REQUEST_SELECT_IMPORT_FOLDER) {
+            if(resultCode == RESULT_OK) {
+                //文件夹模式
+                String path = data.getStringExtra("path");
+                cpProgressBar(true);
+                VUiKit.defer().when(() -> {
+                    copyFiles(csFiles, path);
+                }).done((res) -> {
+                    cpProgressBar(false);
+                    cpFileDialog(String.format(Locale.ENGLISH, XApp.getApp().getResources().getString(R.string.file_picker_cp_title_msg2), cpNum, path));
+                }).fail((v) -> {
+                    if(cpNum <= 0){
+                        cpProgressBar(false);
+                        cpFileDialog(getResources().getString(R.string.file_picker_cp_title_msg));}
+                });
+            }
         }
+    }
+
+    private static void createPicker(Activity ac, int requestCode, String rPath, int addText, boolean csmodel){
+        try {
+            new FilePicker()
+                    .withActivity(ac)
+                    .withRequestCode(requestCode)
+                    .withStartPath(rPath)
+                    .withAddText(ac.getResources().getString(addText))
+                    .withChooseMode(csmodel)
+                    .start();
+        } catch (Exception ex) {
+            Toast.makeText(ac, "Error", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void copyFiles(List<String> list, String tPath){
+        cpNum = 0;
+        for (int i = 0; i < list.size(); i++) {
+            try {
+                if(!tPath.endsWith("/")) tPath = tPath + "/";
+                FileUtils.mkdirs(tPath);
+                FileUtils.copyFile(list.get(i), tPath + FileUtils.cutNameOfFilepath(list.get(i)));
+                cpNum += 1;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void cpProgressBar(boolean open){
+        if(!open) {DialogUtil.dismissDialog(cpProgressBar);return;}
+        try{
+            cpProgressBar = new ProgressDialog(this);
+            cpProgressBar.setCancelable(false);
+            cpProgressBar.setMessage(getResources().getString(R.string.wait));
+            cpProgressBar.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cpFileDialog(String message){
+        AlertDialog cpDialog = new AlertDialog.Builder(this, R.style.Theme_AppCompat_DayNight_Dialog_Alert)
+                .setTitle(getResources().getString(R.string.file_picker_cp_title))
+                .setMessage(message)
+                .setPositiveButton("OK", null)
+                .create();
+        DialogUtil.showDialog(cpDialog);
     }
 }

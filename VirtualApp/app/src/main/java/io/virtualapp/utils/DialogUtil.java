@@ -1,5 +1,6 @@
 package io.virtualapp.utils;
 
+import android.app.ProgressDialog;
 import android.support.v7.app.AlertDialog;
 
 /**
@@ -13,6 +14,17 @@ public class DialogUtil {
         }
         try {
             dialog.show();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void dismissDialog(ProgressDialog dialog) {
+        if (dialog == null) {
+            return;
+        }
+        try {
+            dialog.dismiss();
         } catch (Throwable e) {
             e.printStackTrace();
         }

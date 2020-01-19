@@ -184,4 +184,25 @@ Currently, EXposed has been put on the app store and renamed to Tai Chi. You can
     <string name="install_taichi_while_old_version">The version of TaiChi installed is too old, Please install the latest Taichi!</string>
     <string name="install_go_latest_exp">Install the latest TaiChi</string>
     <string name="install_complete_and_open">Open</string>
+
+    <string name="file_picker_NotFoundBooks">Please select a file at least</string>
+    <string name="file_picker_NotFoundPath">The sd card is not available</string>
+    <string name="file_picker_UpOneLevel">Up</string>
+    <string name="file_picker_Selected">selected</string>
+    <string name="file_picker_LItem">item</string>
+    <string name="file_picker_Detail">detail</string>
+    <string name="file_picker_FileSize">size : </string>
+    <string name="file_picker_OutSize">Has reached the maximum number</string>
+    <string name="file_picker_SelectAll">SelectAll</string>
+    <string name="file_picker_Cancel">Cancel</string>
+    <string name="file_picker_OK">OK</string>
+    <string name="file_picker_ChooseTip">Please select folders path</string>
+    <string name="file_picker_cp_title_msg">Copying file errors</string>
+    <string name="file_picker_cp_title">The data prompt</string>
+    <string name="file_picker_cp_title_msg2">Copyed the %d files to %s</string>
+    <string name="file_picker_need_cp_message">Do you need to export or import it?</string>
+    <string name="file_picker_need_cp_export">EXPORT</string>
+    <string name="file_picker_need_cp_import">IMPORT</string>
+    <string name="file_picker_need_cp_file">Select the copied file</string>
+    <string name="file_picker_cp_to_here">Copy to here</string>
 </resources>

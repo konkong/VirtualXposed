@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,6 +24,10 @@ import java.nio.ByteOrder;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -226,6 +231,11 @@ public class FileUtils {
         }
     }
 
+    public static void mkdirs(String filedir){
+        File file = new File(filedir);
+        if(!file.exists()) file.mkdirs();
+    }
+
     public static void copyFile(String source, String target) throws IOException {
         File from = new File(source);
         if (!from.exists()) {
@@ -323,6 +333,68 @@ public class FileUtils {
             }
         }
         return res.toString();
+    }
+
+    public static List<File> getFileListByDirPath(String path, FileFilter filter) {
+        File directory = new File(path);
+        File[] files = directory.listFiles(filter);
+        List<File> result = new ArrayList<>();
+        if (files == null) {
+            return new ArrayList<>();
+        }
+
+        for (int i = 0; i < files.length; i++) {
+            if(files[i].isDirectory() && files[i].getName().startsWith(".")) continue;
+            result.add(files[i]);
+        }
+        Collections.sort(result, new FileComparator());
+        return result;
+    }
+
+    public static String cutLastSegmentOfPath(String path) {
+        return path.substring(0, path.lastIndexOf("/"));
+    }
+
+    public static String cutNameOfFilepath(String path) {
+        return path.substring(path.lastIndexOf("/"));
+    }
+
+    public static String getReadableFileSize(long size) {
+        if (size <= 0) return "0";
+        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        return new DecimalFormat("#").format(size / Math.pow(1024, digitGroups)) + " " + units[digitGroups];
+    }
+
+    /**
+     * 获取文件长度
+     *
+     * @param file 文件
+     * @return 文件长度
+     */
+    public static long getFileLength(final File file) {
+        if (!isFile(file)) return -1;
+        return file.length();
+    }
+
+    /**
+     * 判断是否是文件
+     *
+     * @param file 文件
+     * @return {@code true}: 是<br>{@code false}: 否
+     */
+    public static boolean isFile(final File file) {
+        return file != null && file.exists() && file.isFile();
+    }
+
+    /**
+     * 根据地址获取当前地址下的所有目录和文件，并且排序
+     *
+     * @param path
+     * @return List<File>
+     */
+    public static List<File> getFileList(String path, FileFilter filter) {
+        return FileUtils.getFileListByDirPath(path, filter);
     }
 
     public interface FileMode {

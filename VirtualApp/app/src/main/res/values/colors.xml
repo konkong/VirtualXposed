@@ -30,4 +30,12 @@
     <color name="black_20_transparent">#55000000</color>
 
     <color name="md_transparent">#00FFFFFF</color>
+
+    <color name="file_picker_colorPrimary">#92B4F4</color>
+    <color name="file_picker_colorPrimaryDark">#92B4F4</color>
+    <color name="file_picker_colorAccent">#92B4F4</color>
+    <color name="file_picker_gray">#cccccc</color>
+    <color name="file_picker_lightgray">#dddddd</color>
+    <color name="file_picker_white">#fff</color>
+    <color name="file_picker_defaultColor">#92B4F4</color>
 </resources>
